@@ -1,0 +1,3 @@
+[submodule "MPU9250-Data-Visualization"]
+	path = MPU9250-Data-Visualization
+	url = git@github.com:Sanahm/MPU9250-Data-Visualization.git
