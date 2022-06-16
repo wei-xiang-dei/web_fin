@@ -4,7 +4,6 @@ from numpy.linalg import inv, norm
 import data_receiver
 from mathlib import *
 from plotlib import *
-from main import *
 import time
 import os.path
 import numpy as np
