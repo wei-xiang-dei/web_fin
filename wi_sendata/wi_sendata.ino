@@ -10,12 +10,18 @@ const char * pwd = "";
 // it can be ip address of the server or 
 // a network broadcast address
 // here is broadcast address
-const char * udpAddress = "192.168.139.150";
+const char * udpAddress = "192.168.139.106";
 const int udpPort = 44444;
 int buttonState = 0;
 int diffbutton = 0;
+
+int loop_cnt=0;
 //create UDP instance
 WiFiUDP udp;
+
+uint8_t buffer[1500] = "";
+char buf3[1500]="";
+char buf2[60]="";
 
 void setup(){
    //Connect to the WiFi network
@@ -58,84 +64,114 @@ void setup(){
     mpu.setFilterIterations(15);
     pinMode(25,INPUT_PULLUP);
     int i = 0;
+    uint8_t buffer[1500] = "";
+    char buf3[1500]="";
+    char buf2 [60]="";
+     int cnt_len=0;
     while(i < 50 ){
        if (mpu.update()) {
        static uint32_t prev_ms = millis();
-       if (millis() > prev_ms + 40) {
-          uint8_t buffer[50] = "";
-          char buf2 [60]="";
-          //This initializes udp and transfer buffer
-          sprintf(buf2,"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",mpu.getGyroX(),mpu.getGyroY(),mpu.getGyroZ(),mpu.getAccX(),mpu.getAccY(),mpu.getAccZ(),mpu.getMagX(),mpu.getMagY(),mpu.getMagZ());
+       if (millis() > prev_ms + 1) {
+//          sprintf(buf2,"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",mpu.getGyroX(),mpu.getGyroY(),mpu.getGyroZ(),mpu.getAccX(),mpu.getAccY(),mpu.getAccZ(),mpu.getMagX(),mpu.getMagY(),mpu.getMagZ());
+            sprintf(buf2,"%.2f,%.2f,%.2f\n",mpu.getAccX(),mpu.getAccY(),mpu.getAccZ());
+//            Serial.print("buf2");
+            delay(50);
+          cnt_len+=strlen(buf2);
 //          Serial.println(strlen(buf2));
-          memcpy(buffer,buf2,strlen(buf2));
-          udp.beginPacket(udpAddress, udpPort);
-          udp.write(buffer,strlen(buf2));
-          udp.endPacket();
-//           getgyro();
-//           acc();
-//           //linearacc();
-//           Mag();
+          Serial.println("show buf2");
+          Serial.println(buf2);
+          strncat(buf3,buf2,strlen(buf2));
+          memset(buf2,0,60);
+
            prev_ms = millis();
            i = i +1;
+           Serial.printf("i is \n");
+           Serial.print(i);
+           Serial.printf("\n");
        }
        }
        
       }
+      Serial.println("stage2....");
+      memcpy(buffer,buf3,cnt_len);
+      for(int t=0;t<1;t++){
+      udp.beginPacket(udpAddress, udpPort);
+      udp.write(buffer,cnt_len-1);
+      udp.endPacket();
+      }
+  memset(buffer,0,1500);
+  memset(buf3,0,1500);
+  memset(buf2,0,60);
   
- 
+ Serial.println("stage2....");
 }
 
 void loop(){
-
+  Serial.printf("loop cnt is ");
+  Serial.println(loop_cnt);
+   
   buttonState = digitalRead(25);
   if(buttonState != diffbutton){
     int i = 0;
-    uint8_t buffer[50][50] = "";
-    char buf2 [50][60]="";
+   
+    int my_len=0;
     while(i < 50){
       if (mpu.update()) {
           
           //This initializes udp and transfer buffer
-          sprintf(buf2[i],"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",mpu.getGyroX(),mpu.getGyroY(),mpu.getGyroZ(),mpu.getAccX(),mpu.getAccY(),mpu.getAccZ(),mpu.getMagX(),mpu.getMagY(),mpu.getMagZ());
-          Serial.println(strlen(buf2[i]));
-          memcpy(buffer[i],buf2[i],strlen(buf2[i]));
-          udp.beginPacket(udpAddress, udpPort);
-          udp.write(buffer,strlen(buf2[i]));
-          udp.endPacket();
-          memset(buffer[i], 0, 50);
+//          sprintf(buf2,"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",mpu.getGyroX(),mpu.getGyroY(),mpu.getGyroZ(),mpu.getAccX(),mpu.getAccY(),mpu.getAccZ(),mpu.getMagX(),mpu.getMagY(),mpu.getMagZ());
+          sprintf(buf2,"%.2f,%.2f,%.2f\n",mpu.getAccX(),mpu.getAccY(),mpu.getAccZ());
+//          Serial.println(strlen(buf2));
+          my_len+=strlen(buf2);
+          strncat(buf3,buf2,strlen(buf2));
+          Serial.println("show buf2");
+          Serial.println(buf2);
+          memset(buf2,0,60);
+           i = i +1;
+          Serial.printf("i is ");
+         Serial.println(i);
+//          memset(buffer[i], 0, 50);
         static uint32_t prev_ms = millis();
-        if (millis() > prev_ms + 50) {
-         getgyro();
-         acc();
-         //linearacc();
-         Mag();
+        if (millis() > prev_ms + 500) {
+//         getgyro();
+//         acc();
+//         //linearacc();
+//         Mag();
+//           delay(500);
          prev_ms = millis();
-         i = i +1;
+         Serial.printf("i is ");
+         Serial.println(i);
        
       }
    }
    
    
       }
-   for(int a=0;a<50;a++){
-    for(int z=0;z<10;z++){
+    memcpy(buffer,buf3,my_len);
+    Serial.println("my_stop point");
+    for(int z=0;z<1;z++){
       udp.beginPacket(udpAddress, udpPort);
-      udp.write(buffer[a],strlen(buf2[a]));
+      udp.write(buffer,my_len-1);
       udp.endPacket();
     }
-    
-   }
+    memset(buffer,0,1500);
+    memset(buf3,0,1500);
+    memset(buf2,0,60);
+    Serial.println("my_stop point");
     
    diffbutton = diffbutton^(1);
+   Serial.println("my_stop point333");
     }
- else{
-  uint8_t buf3[5]="off\n";
-  udp.beginPacket(udpAddress, udpPort);
-  udp.write(buf3,3);
-  udp.endPacket();
-  Serial.println("off");
-  
-  }
+    else{
+    Serial.println("my_stop point2");
+    uint8_t buf7[5]="off\n";
+    udp.beginPacket(udpAddress, udpPort);
+    udp.write(buf7,4);
+    udp.endPacket();
+    Serial.println("off");
+    
+    }
+    Serial.println("my_stop point444");
 }
 
 
